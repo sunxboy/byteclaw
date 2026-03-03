@@ -191,10 +191,15 @@ impl ChannelPlugin for FeishuPlugin {
         let cancel_for_task = cancel.clone();
         let account_id_for_task = account_id.to_string();
         std::thread::spawn(move || {
-            let rt = tokio::runtime::Builder::new_current_thread()
+            let rt = match tokio::runtime::Builder::new_current_thread()
                 .enable_all()
-                .build()
-                .expect("failed to create tokio runtime");
+                .build() {
+                Ok(rt) => rt,
+                Err(e) => {
+                    error!(account_id = %account_id_for_task, error = %e, "failed to create tokio runtime");
+                    return;
+                }
+            };
 
             rt.block_on(async {
                 if let Err(e) = run_websocket(

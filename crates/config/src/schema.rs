@@ -2267,11 +2267,12 @@ system_prompt_suffix = "Focus on evidence."
     }
 
     #[test]
-    fn channels_config_defaults_to_telegram_and_discord_offered() {
+    fn channels_config_defaults_to_telegram_discord_and_feishu_offered() {
         let config = ChannelsConfig::default();
         assert_eq!(config.offered, vec![
             "telegram".to_string(),
-            "discord".to_string()
+            "discord".to_string(),
+            "feishu".to_string()
         ]);
     }
 
@@ -2280,7 +2281,8 @@ system_prompt_suffix = "Focus on evidence."
         let config: ChannelsConfig = toml::from_str("").unwrap();
         assert_eq!(config.offered, vec![
             "telegram".to_string(),
-            "discord".to_string()
+            "discord".to_string(),
+            "feishu".to_string()
         ]);
     }
 
