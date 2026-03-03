@@ -13,6 +13,7 @@ pub enum ChannelType {
     #[serde(rename = "msteams")]
     MsTeams,
     Discord,
+    Feishu,
 }
 
 impl ChannelType {
@@ -23,6 +24,7 @@ impl ChannelType {
             Self::Whatsapp => "whatsapp",
             Self::MsTeams => "msteams",
             Self::Discord => "discord",
+            Self::Feishu => "feishu",
         }
     }
 
@@ -33,6 +35,7 @@ impl ChannelType {
             Self::Whatsapp => "WhatsApp",
             Self::MsTeams => "Microsoft Teams",
             Self::Discord => "Discord",
+            Self::Feishu => "Feishu",
         }
     }
 }
@@ -52,6 +55,7 @@ impl std::str::FromStr for ChannelType {
             "whatsapp" => Ok(Self::Whatsapp),
             "msteams" | "microsoft_teams" | "microsoft-teams" | "teams" => Ok(Self::MsTeams),
             "discord" => Ok(Self::Discord),
+            "feishu" | "lark" => Ok(Self::Feishu),
             other => Err(Error::invalid_input(format!(
                 "unknown channel type: {other}"
             ))),
@@ -507,6 +511,7 @@ mod tests {
             ChannelType::Whatsapp,
             ChannelType::MsTeams,
             ChannelType::Discord,
+            ChannelType::Feishu,
         ] {
             let json = serde_json::to_string(&ct).unwrap();
             let parsed: ChannelType = serde_json::from_str(&json).unwrap();
@@ -520,6 +525,15 @@ mod tests {
         assert_eq!(ct.as_str(), "discord");
         assert_eq!(ct.to_string(), "discord");
         assert_eq!("discord".parse::<ChannelType>().unwrap(), ct);
+    }
+
+    #[test]
+    fn channel_type_feishu_roundtrip() {
+        let ct = ChannelType::Feishu;
+        assert_eq!(ct.as_str(), "feishu");
+        assert_eq!(ct.to_string(), "feishu");
+        assert_eq!("feishu".parse::<ChannelType>().unwrap(), ct);
+        assert_eq!("lark".parse::<ChannelType>().unwrap(), ct);
     }
 
     #[test]
