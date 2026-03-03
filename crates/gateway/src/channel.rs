@@ -15,6 +15,7 @@ use {
         store::{ChannelStore, StoredChannel},
     },
     moltis_discord::DiscordPlugin,
+    moltis_feishu::FeishuPlugin,
     moltis_msteams::MsTeamsPlugin,
     moltis_sessions::metadata::SqliteSessionMetadata,
     moltis_telegram::TelegramPlugin,
@@ -32,11 +33,12 @@ fn unix_now() -> i64 {
         .as_secs() as i64
 }
 
-/// Live channel service backed by Telegram, Microsoft Teams, Discord, and WhatsApp plugins.
+/// Live channel service backed by Telegram, Microsoft Teams, Discord, Feishu, and WhatsApp plugins.
 pub struct LiveChannelService {
     telegram: Arc<RwLock<TelegramPlugin>>,
     msteams: Arc<RwLock<MsTeamsPlugin>>,
     discord: Arc<RwLock<DiscordPlugin>>,
+    feishu: Arc<RwLock<FeishuPlugin>>,
     #[cfg(feature = "whatsapp")]
     whatsapp: Arc<RwLock<WhatsAppPlugin>>,
     outbound: Arc<dyn ChannelOutbound>,
@@ -50,6 +52,7 @@ impl LiveChannelService {
         telegram: Arc<RwLock<TelegramPlugin>>,
         msteams: Arc<RwLock<MsTeamsPlugin>>,
         discord: Arc<RwLock<DiscordPlugin>>,
+        feishu: Arc<RwLock<FeishuPlugin>>,
         #[cfg(feature = "whatsapp")] whatsapp: Arc<RwLock<WhatsAppPlugin>>,
         outbound: Arc<dyn ChannelOutbound>,
         store: Arc<dyn ChannelStore>,
@@ -60,6 +63,7 @@ impl LiveChannelService {
             telegram,
             msteams,
             discord,
+            feishu,
             #[cfg(feature = "whatsapp")]
             whatsapp,
             outbound,
@@ -99,6 +103,12 @@ impl LiveChannelService {
                 matches.push(ChannelType::Discord);
             }
         }
+        {
+            let fs = self.feishu.read().await;
+            if fs.has_account(account_id) {
+                matches.push(ChannelType::Feishu);
+            }
+        }
         #[cfg(feature = "whatsapp")]
         {
             let wa = self.whatsapp.read().await;
@@ -122,6 +132,7 @@ impl LiveChannelService {
             ChannelType::Telegram,
             ChannelType::MsTeams,
             ChannelType::Discord,
+            ChannelType::Feishu,
             ChannelType::Whatsapp,
         ] {
             if self
