@@ -2388,6 +2388,11 @@ pub async fn prepare_gateway(
                 .with_message_log(Arc::clone(&message_log))
                 .with_event_sink(Arc::clone(&channel_sink)),
         ));
+        let feishu_plugin = Arc::new(tokio::sync::RwLock::new(
+            moltis_feishu::FeishuPlugin::new()
+                .with_message_log(Arc::clone(&message_log))
+                .with_event_sink(Arc::clone(&channel_sink)),
+        ));
 
         #[cfg(feature = "whatsapp")]
         let whatsapp_plugin = {
@@ -2436,6 +2441,17 @@ pub async fn prepare_gateway(
                     tracing::warn!(account_id, "failed to start discord account: {e}");
                 } else {
                     started.insert(("discord".into(), account_id.clone()));
+                }
+            }
+        }
+
+        {
+            let mut fs = feishu_plugin.write().await;
+            for (account_id, account_config) in &config.channels.feishu {
+                if let Err(e) = fs.start_account(account_id, account_config.clone()).await {
+                    tracing::warn!(account_id, "failed to start feishu account: {e}");
+                } else {
+                    started.insert(("feishu".into(), account_id.clone()));
                 }
             }
         }
@@ -2567,6 +2583,7 @@ pub async fn prepare_gateway(
             tg_plugin,
             msteams_plugin,
             discord_plugin,
+            feishu_plugin,
             #[cfg(feature = "whatsapp")]
             whatsapp_plugin,
             outbound_router,
