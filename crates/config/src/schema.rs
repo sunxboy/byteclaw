@@ -1135,7 +1135,7 @@ pub struct McpOAuthOverrideEntry {
 #[serde(default)]
 pub struct ChannelsConfig {
     /// Which channel types are offered in the web UI (onboarding + channels page).
-    /// Defaults to `["telegram", "discord"]`. Set to `["telegram", "discord", "msteams"]` to opt in to Teams.
+    /// Defaults to `["telegram", "discord", "feishu"]`. Set to `["telegram", "discord", "msteams", "feishu"]` to opt in to Teams.
     #[serde(
         default = "default_channels_offered",
         skip_serializing_if = "Vec::is_empty"
@@ -1159,7 +1159,7 @@ pub struct ChannelsConfig {
 }
 
 fn default_channels_offered() -> Vec<String> {
-    vec!["telegram".into(), "discord".into()]
+    vec!["telegram".into(), "discord".into(), "feishu".into()]
 }
 
 impl Default for ChannelsConfig {
