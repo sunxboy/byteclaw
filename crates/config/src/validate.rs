@@ -367,6 +367,7 @@ fn build_schema_map() -> KnownKeys {
                 ("whatsapp", Map(Box::new(Leaf))),
                 ("msteams", Map(Box::new(Leaf))),
                 ("discord", Map(Box::new(Leaf))),
+                ("feishu", Map(Box::new(Leaf))),
             ])),
         ),
         (
@@ -968,7 +969,7 @@ fn check_semantic_warnings(config: &MoltisConfig, diagnostics: &mut Vec<Diagnost
     // want to warn at the TOML level.  The enum is auto/native/text/off.
 
     // Unknown channel types in channels.offered
-    let valid_channel_types = ["telegram", "msteams", "discord"];
+    let valid_channel_types = ["telegram", "msteams", "discord", "feishu"];
     for (idx, entry) in config.channels.offered.iter().enumerate() {
         if !valid_channel_types.contains(&entry.as_str()) {
             diagnostics.push(Diagnostic {

@@ -1153,6 +1153,9 @@ pub struct ChannelsConfig {
     /// Discord bot accounts, keyed by account ID.
     #[serde(default)]
     pub discord: HashMap<String, serde_json::Value>,
+    /// Feishu bot accounts, keyed by account ID.
+    #[serde(default)]
+    pub feishu: HashMap<String, serde_json::Value>,
 }
 
 fn default_channels_offered() -> Vec<String> {
@@ -1167,6 +1170,7 @@ impl Default for ChannelsConfig {
             whatsapp: HashMap::new(),
             msteams: HashMap::new(),
             discord: HashMap::new(),
+            feishu: HashMap::new(),
         }
     }
 }
