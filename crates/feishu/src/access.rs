@@ -49,4 +49,38 @@ mod tests {
         // Non-allowlisted groups denied
         assert!(!check_group_access(GroupPolicy::Allowlist, &allowlist, "chat3", false));
     }
+
+    #[test]
+    fn allowlist_empty_denies_all_groups() {
+        let allowlist: Vec<String> = vec![];
+        // DMs still allowed even with empty allowlist
+        assert!(check_group_access(GroupPolicy::Allowlist, &allowlist, "any", true));
+        // But all groups are denied
+        assert!(!check_group_access(GroupPolicy::Allowlist, &allowlist, "chat1", false));
+    }
+
+    #[test]
+    fn allowlist_dm_always_allowed_independent_of_allowlist() {
+        // DM should be allowed even if not in allowlist
+        assert!(check_group_access(
+            GroupPolicy::Allowlist,
+            &["other_chat".to_string()],
+            "not_in_allowlist",
+            true
+        ));
+    }
+
+    #[test]
+    fn closed_policy_empty_allowlist_irrelevant() {
+        // In closed policy, allowlist is ignored
+        assert!(check_group_access(GroupPolicy::Closed, &["chat1".to_string()], "any", true));
+        assert!(!check_group_access(GroupPolicy::Closed, &["chat1".to_string()], "chat1", false));
+    }
+
+    #[test]
+    fn open_policy_allowlist_irrelevant() {
+        // In open policy, allowlist is ignored
+        assert!(check_group_access(GroupPolicy::Open, &[], "any", true));
+        assert!(check_group_access(GroupPolicy::Open, &[], "any", false));
+    }
 }

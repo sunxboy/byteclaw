@@ -109,4 +109,63 @@ mod tests {
         assert_eq!(cfg.otp_cooldown_secs, 3600);
     }
 
+    #[test]
+    fn config_to_status_json_excludes_secrets() {
+        let cfg = FeishuAccountConfig {
+            app_id: "cli_test".to_string(),
+            app_secret: Secret::new("secret_value".to_string()),
+            connection_mode: ConnectionMode::Websocket,
+            group_policy: GroupPolicy::Allowlist,
+            group_allowlist: vec!["oc_123".to_string()],
+            otp_cooldown_secs: 1800,
+            encrypt_key: Some(Secret::new("encrypt_key".to_string())),
+        };
+
+        let status = cfg.to_status_json();
+
+        // Verify app_id is present
+        assert_eq!(status["app_id"], "cli_test");
+
+        // Verify secrets are NOT included
+        assert!(!status.as_object().unwrap().contains_key("app_secret"));
+        assert!(!status.as_object().unwrap().contains_key("encrypt_key"));
+
+        // Verify has_encrypt_key boolean is present instead
+        assert_eq!(status["has_encrypt_key"], true);
+
+        // Verify other fields are present
+        assert_eq!(status["connection_mode"], "websocket");
+        assert_eq!(status["group_policy"], "allowlist");
+        assert_eq!(status["otp_cooldown_secs"], 1800);
+        assert_eq!(status["group_allowlist"].as_array().unwrap().len(), 1);
+        assert_eq!(status["group_allowlist"][0], "oc_123");
+    }
+
+    #[test]
+    fn config_deserialize_all_policies() {
+        for policy in ["allowlist", "open", "closed"] {
+            let json = format!(
+                r#"{{"app_id": "cli_xxx", "app_secret": "secret", "group_policy": "{}"}}"#,
+                policy
+            );
+            let cfg: FeishuAccountConfig = serde_json::from_str(&json).unwrap();
+            let expected = match policy {
+                "allowlist" => GroupPolicy::Allowlist,
+                "open" => GroupPolicy::Open,
+                "closed" => GroupPolicy::Closed,
+                _ => unreachable!(),
+            };
+            assert_eq!(cfg.group_policy, expected, "Failed for policy: {}", policy);
+        }
+    }
+
+    #[test]
+    fn connection_mode_default_is_websocket() {
+        assert_eq!(ConnectionMode::default(), ConnectionMode::Websocket);
+    }
+
+    #[test]
+    fn group_policy_default_is_closed() {
+        assert_eq!(GroupPolicy::default(), GroupPolicy::Closed);
+    }
 }
