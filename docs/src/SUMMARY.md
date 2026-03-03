@@ -28,6 +28,7 @@
 - [Voice](voice.md)
 - [Discord](discord.md)
 - [WhatsApp](whatsapp.md)
+- [Feishu](channels/feishu.md)
 - [Browser Automation](browser-automation.md)
 - [CalDAV (Calendars)](caldav.md)
 - [GraphQL API](graphql.md)
