@@ -291,6 +291,7 @@ moltis-common          = { path = "crates/common" }
 moltis-config          = { path = "crates/config" }
 moltis-cron            = { path = "crates/cron" }
 moltis-discord         = { path = "crates/discord" }
+moltis-feishu          = { path = "crates/feishu" }
 moltis-gateway         = { default-features = false, path = "crates/gateway" }
 moltis-graphql         = { path = "crates/graphql" }
 moltis-mcp             = { path = "crates/mcp" }

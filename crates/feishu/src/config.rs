@@ -1,6 +1,6 @@
 //! Feishu channel configuration.
 
-use secrecy::{ExposeSecret, Secret};
+use secrecy::Secret;
 use serde::Deserialize;
 
 /// Feishu account configuration

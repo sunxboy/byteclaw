@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-open-lark = "0.3"
+open-lark = { version = "0.3", features = ["websocket"] }
 async-trait = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

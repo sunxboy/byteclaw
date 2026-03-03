@@ -11,13 +11,14 @@ use tokio_util::sync::CancellationToken;
 use crate::config::FeishuAccountConfig;
 
 /// Per-account state
+#[derive(Clone)]
 pub struct AccountState {
     pub account_id: String,
     pub config: FeishuAccountConfig,
     pub message_log: Option<Arc<dyn MessageLog>>,
     pub event_sink: Option<Arc<dyn ChannelEventSink>>,
     pub cancel: CancellationToken,
-    pub otp: Mutex<OtpState>,
+    pub otp: Arc<Mutex<OtpState>>,
     // Feishu-specific fields
     pub tenant_key: Option<String>,
 }
@@ -31,6 +32,20 @@ impl std::fmt::Debug for AccountState {
             .field("event_sink", &self.event_sink.is_some())
             .field("tenant_key", &self.tenant_key)
             .finish_non_exhaustive()
+    }
+}
+
+impl Default for AccountState {
+    fn default() -> Self {
+        Self {
+            account_id: String::new(),
+            config: FeishuAccountConfig::default(),
+            message_log: None,
+            event_sink: None,
+            cancel: CancellationToken::new(),
+            otp: Arc::new(Mutex::new(OtpState::new(3600))),
+            tenant_key: None,
+        }
     }
 }
 
