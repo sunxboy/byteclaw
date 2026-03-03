@@ -221,6 +221,10 @@ impl LiveChannelService {
                 let mut dc = self.discord.write().await;
                 dc.start_account(account_id, config).await
             },
+            ChannelType::Feishu => {
+                let mut fs = self.feishu.write().await;
+                fs.start_account(account_id, config).await
+            },
             #[cfg(feature = "whatsapp")]
             ChannelType::Whatsapp => {
                 let mut wa = self.whatsapp.write().await;
@@ -255,6 +259,10 @@ impl LiveChannelService {
             ChannelType::Discord => {
                 let mut dc = self.discord.write().await;
                 dc.stop_account(account_id).await
+            },
+            ChannelType::Feishu => {
+                let mut fs = self.feishu.write().await;
+                fs.stop_account(account_id).await
             },
             #[cfg(feature = "whatsapp")]
             ChannelType::Whatsapp => {
@@ -415,6 +423,36 @@ impl ChannelService for LiveChannelService {
                         Err(e) => channels.push(serde_json::json!({
                             "type": ChannelType::Discord.as_str(),
                             "name": format!("Discord ({aid})"),
+                            "account_id": aid,
+                            "status": "error",
+                            "details": e.to_string(),
+                        })),
+                    }
+                }
+            }
+        }
+
+        {
+            let fs = self.feishu.read().await;
+            let account_ids = fs.account_ids();
+            if let Some(status) = fs.status() {
+                for aid in &account_ids {
+                    match status.probe(aid).await {
+                        Ok(snap) => {
+                            let entry = self
+                                .channel_status_entry(
+                                    ChannelType::Feishu,
+                                    "Feishu",
+                                    aid,
+                                    snap,
+                                    fs.account_config(aid),
+                                )
+                                .await;
+                            channels.push(entry);
+                        },
+                        Err(e) => channels.push(serde_json::json!({
+                            "type": "feishu",
+                            "name": format!("Feishu ({aid})"),
                             "account_id": aid,
                             "status": "error",
                             "details": e.to_string(),

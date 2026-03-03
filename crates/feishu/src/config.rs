@@ -1,7 +1,7 @@
 //! Feishu channel configuration.
 
 use secrecy::Secret;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Feishu account configuration
 #[derive(Debug, Clone, Deserialize)]
@@ -27,6 +27,20 @@ pub struct FeishuAccountConfig {
     pub encrypt_key: Option<Secret<String>>,
 }
 
+impl FeishuAccountConfig {
+    /// Returns a sanitized JSON value for status reporting (excludes secrets)
+    pub fn to_status_json(&self) -> serde_json::Value {
+        serde_json::json!({
+            "app_id": self.app_id,
+            "connection_mode": self.connection_mode,
+            "group_policy": self.group_policy,
+            "group_allowlist": self.group_allowlist,
+            "otp_cooldown_secs": self.otp_cooldown_secs,
+            "has_encrypt_key": self.encrypt_key.is_some(),
+        })
+    }
+}
+
 impl Default for FeishuAccountConfig {
     fn default() -> Self {
         Self {
@@ -46,7 +60,7 @@ fn default_otp_cooldown() -> u64 {
 }
 
 /// Connection mode for Feishu
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ConnectionMode {
     /// WebSocket long connection (default and only supported mode)
@@ -55,7 +69,7 @@ pub enum ConnectionMode {
 }
 
 /// Group chat policy
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum GroupPolicy {
     /// Only respond in allowlisted groups
