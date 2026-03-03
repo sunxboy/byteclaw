@@ -12,6 +12,7 @@ use open_lark::{
     service::im::v1::message::{CreateMessageRequest, CreateMessageRequestBody},
 };
 use secrecy::ExposeSecret;
+#[cfg(feature = "tracing")]
 use tracing::{debug, error, info};
 
 use crate::state::AccountStateMap;
@@ -31,6 +32,7 @@ impl ChannelOutbound for FeishuOutbound {
         text: &str,
         _reply_to: Option<&str>,
     ) -> ChannelResult<()> {
+        #[cfg(feature = "tracing")]
         debug!(account_id, to, text_len = text.len(), "sending text message");
 
         // Get account state to retrieve credentials
@@ -71,10 +73,12 @@ impl ChannelOutbound for FeishuOutbound {
         // Send message
         match client.im.v1.message.create(request, None).await {
             Ok(_) => {
+                #[cfg(feature = "tracing")]
                 info!(account_id, to, "text message sent successfully");
                 Ok(())
             }
             Err(e) => {
+                #[cfg(feature = "tracing")]
                 error!(account_id, to, error = %e, "failed to send text message");
                 Err(moltis_channels::Error::external(
                     "feishu",
@@ -91,6 +95,7 @@ impl ChannelOutbound for FeishuOutbound {
         payload: &ReplyPayload,
         _reply_to: Option<&str>,
     ) -> ChannelResult<()> {
+        #[cfg(feature = "tracing")]
         debug!(account_id, to, "sending media");
 
         // Get account state to retrieve credentials
@@ -142,10 +147,12 @@ impl ChannelOutbound for FeishuOutbound {
         // Send message
         match client.im.v1.message.create(request, None).await {
             Ok(_) => {
+                #[cfg(feature = "tracing")]
                 info!(account_id, to, "media message sent successfully");
                 Ok(())
             }
             Err(e) => {
+                #[cfg(feature = "tracing")]
                 error!(account_id, to, error = %e, "failed to send media message");
                 Err(moltis_channels::Error::external(
                     "feishu",

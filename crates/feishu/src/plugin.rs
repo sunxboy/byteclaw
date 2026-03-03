@@ -19,6 +19,7 @@ use open_lark::{
 };
 use secrecy::ExposeSecret;
 use tokio_util::sync::CancellationToken;
+#[cfg(feature = "tracing")]
 use tracing::{error, info, warn};
 
 use crate::{
@@ -117,14 +118,16 @@ async fn run_websocket(
                 };
 
                 tokio::spawn(async move {
-                    if let Err(e) = handler.handle_event(event).await {
-                        error!(account_id = %handler.account_id, error = %e, "failed to handle message");
+                    if let Err(_e) = handler.handle_event(event).await {
+                        #[cfg(feature = "tracing")]
+                        error!(account_id = %handler.account_id, error = %_e, "failed to handle message");
                     }
                 });
             })
             .build()
     };
 
+    #[cfg(feature = "tracing")]
     info!(account_id = %account_id, "starting feishu websocket connection");
 
     // Start WebSocket connection with cancellation support
@@ -132,6 +135,7 @@ async fn run_websocket(
         result = LarkWsClient::open(&app_id, &app_secret, handler) => {
             match result {
                 Ok(()) => {
+                    #[cfg(feature = "tracing")]
                     info!(account_id = %account_id, "websocket connection closed");
                 }
                 Err(e) => {
@@ -140,6 +144,7 @@ async fn run_websocket(
             }
         }
         _ = cancel.cancelled() => {
+            #[cfg(feature = "tracing")]
             info!(account_id = %account_id, "websocket connection cancelled");
         }
     }
@@ -169,6 +174,7 @@ impl ChannelPlugin for FeishuPlugin {
             ));
         }
 
+        #[cfg(feature = "tracing")]
         info!(account_id, "starting feishu account");
 
         let cancel = CancellationToken::new();
@@ -195,27 +201,34 @@ impl ChannelPlugin for FeishuPlugin {
         // Spawn WebSocket connection task in a blocking thread
         // because open-lark's EventDispatcherHandler is not Send
         let cancel_for_task = cancel.clone();
+        #[cfg(feature = "tracing")]
         let account_id_for_task = account_id.to_string();
         std::thread::spawn(move || {
             let rt = match tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build() {
                 Ok(rt) => rt,
+                #[cfg(feature = "tracing")]
                 Err(e) => {
                     error!(account_id = %account_id_for_task, error = %e, "failed to create tokio runtime");
+                    return;
+                }
+                #[cfg(not(feature = "tracing"))]
+                Err(_) => {
                     return;
                 }
             };
 
             rt.block_on(async {
-                if let Err(e) = run_websocket(
+                if let Err(_e) = run_websocket(
                     app_id,
                     app_secret,
                     account_id_owned,
                     accounts_clone,
                     cancel_for_task,
                 ).await {
-                    error!(account_id = %account_id_for_task, error = %e, "feishu websocket error");
+                    #[cfg(feature = "tracing")]
+                    error!(account_id = %account_id_for_task, error = %_e, "feishu websocket error");
                 }
             });
         });
@@ -230,8 +243,10 @@ impl ChannelPlugin for FeishuPlugin {
         };
         if let Some(cancel) = cancel {
             cancel.cancel();
+            #[cfg(feature = "tracing")]
             info!(account_id, "feishu account stopped");
         } else {
+            #[cfg(feature = "tracing")]
             warn!(account_id, "feishu account not found");
         }
         Ok(())

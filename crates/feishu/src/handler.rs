@@ -2,6 +2,7 @@
 
 use moltis_channels::plugin::{ChannelEvent, ChannelReplyTarget, ChannelType};
 use open_lark::service::im::v1::p2_im_message_receive_v1::P2ImMessageReceiveV1;
+#[cfg(feature = "tracing")]
 use tracing::{debug, warn};
 
 use crate::{
@@ -21,6 +22,7 @@ impl Handler {
         &self,
         event: P2ImMessageReceiveV1,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        #[cfg(feature = "tracing")]
         debug!(account_id = %self.account_id, "handling feishu message event");
 
         // Get account state
@@ -32,6 +34,7 @@ impl Handler {
         let state = match state {
             Some(s) => s,
             None => {
+                #[cfg(feature = "tracing")]
                 warn!(account_id = %self.account_id, "account not found");
                 return Ok(());
             }
@@ -58,6 +61,7 @@ impl Handler {
             &chat_id,
             is_direct_message,
         ) {
+            #[cfg(feature = "tracing")]
             debug!(chat_id = %chat_id, "message denied by group policy");
             return Ok(());
         }
@@ -104,6 +108,7 @@ impl Handler {
                 )
                 .await;
         } else {
+            #[cfg(feature = "tracing")]
             warn!("no event sink configured");
         }
 

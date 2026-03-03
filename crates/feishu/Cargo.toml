@@ -20,6 +20,7 @@ moltis-common = { workspace = true }
 
 [features]
 default = []
+tracing = []
 metrics = ["moltis-channels/metrics"]
 
 [lints]
